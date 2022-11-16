@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, String, Integer, update, delete, s
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from baselogger import application_path
+import os
 
 Base = declarative_base()
 
@@ -18,7 +19,7 @@ class PyDB(Base):
 class DB(PyDB):
     def __init__(self):
         super().__init__()
-        db = application_path + '/secrets.db'
+        db = os.path.join(application_path, '/secrets.db')
         self.engine = create_engine('sqlite:///' + db)
         Base.metadata.create_all(bind=self.engine)
         self.Session = sessionmaker(bind=self.engine)

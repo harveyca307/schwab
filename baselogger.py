@@ -8,7 +8,7 @@ else:
     application_path = os.path.dirname(__file__)
 
 APP_NAME = "ACG-GetTransactions"
-LOG_FILE = application_path + APP_NAME + '.log'
+LOG_FILE = os.path.join(application_path, APP_NAME + '.log')
 
 logger = logging
 

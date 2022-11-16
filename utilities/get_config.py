@@ -2,11 +2,14 @@ from utilities import DB, PySecrets
 from configparser import ConfigParser
 from baselogger import application_path, APP_NAME
 from getpass import getpass
+import os
 
-FILE = f"{application_path}\config.ini"
+FILE = os.path.join(application_path, "config.ini")
 
 
 def get_tm1_config(instance: str) -> dict:
+    _user = None
+    _pass = None
     config = ConfigParser()
     config.read(FILE)
     if not config.has_section(instance):
