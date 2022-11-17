@@ -19,7 +19,7 @@ class PyDB(Base):
 class DB(PyDB):
     def __init__(self):
         super().__init__()
-        db = os.path.join(application_path, '/secrets.db')
+        db = os.path.join(application_path, 'secrets.db')
         self.engine = create_engine('sqlite:///' + db)
         Base.metadata.create_all(bind=self.engine)
         self.Session = sessionmaker(bind=self.engine)
