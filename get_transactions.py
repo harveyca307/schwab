@@ -25,7 +25,7 @@ from docopt import docopt
 from baselogger import logger, APP_NAME
 from utilities import get_tm1_config
 
-APP_VERSION = '2.0'
+APP_VERSION = '3.0'
 
 
 def main(instance: str, cube: str, since: datetime, output: str):
@@ -35,6 +35,8 @@ def main(instance: str, cube: str, since: datetime, output: str):
         with TM1Service(**config) as tm1:
             entries = tm1.server.get_transaction_log_entries(cube=cube, since=since)
         df = pd.DataFrame(entries)
+        df['TimeStamp'] = pd.to_datetime(df['TimeStamp'])
+        df.sort_values(by='TimeStamp', inplace=True, ascending=True)
         df.to_csv(_file, index=False)
     except TM1pyException as t:
         logger.info(t)
