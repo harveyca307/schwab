@@ -44,7 +44,7 @@ def main(instance: str, cube: str, since: datetime, output: str):
             logger.error('Login failure, check non-interactive user credentials')
         else:
             logger.error(t)
-    except TM1pyNotAdminException as n:
+    except TM1pyNotAdminException:
         logger.error('Administrative permissions required')
 
 
