@@ -19,13 +19,13 @@ from datetime import datetime
 
 import pandas as pd
 from TM1py import TM1Service
-from TM1py.Exceptions import TM1pyException
+from TM1py.Exceptions import TM1pyException, TM1pyNotAdminException
 from docopt import docopt
 
 from baselogger import logger, APP_NAME
 from utilities import get_tm1_config
 
-APP_VERSION = '3.0'
+APP_VERSION = '3.5'
 
 
 def main(instance: str, cube: str, since: datetime, output: str):
@@ -39,7 +39,13 @@ def main(instance: str, cube: str, since: datetime, output: str):
         df.sort_values(by='TimeStamp', inplace=True, ascending=True)
         df.to_csv(_file, index=False)
     except TM1pyException as t:
-        logger.info(t)
+        t_msg = str(t).split('-')
+        if (t_msg[2]).strip() == "Reason: 'Unauthorized'":
+            logger.error('Login failure, check non-interactive user credentials')
+        else:
+            logger.error(t)
+    except TM1pyNotAdminException as n:
+        logger.error('Administrative permissions required')
 
 
 if __name__ == '__main__':
