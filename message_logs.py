@@ -31,12 +31,13 @@ def main(file: str, instance: str) -> None:
         messages = tm1.server.get_message_log_entries(reverse=True)
     for message in messages:
         if message['Logger'] == "TM1.Process":
-            if "user" in message['Message'] or "finished" in message['Message']:
+            if "user" in message['Message']:
                 tmst = message['TimeStamp'].split("T")
-                msg.append((tmst[0], tmst[1].replace('Z', ''), message['Message'].replace("\r\n", " ")))
+                user = message['Message'][message['Message'].find("user") + 5:].replace('"','')
+                msg.append((tmst[0], tmst[1].replace('Z', ''), user, message['Message'].replace("\r\n", " ")))
 
     df = pd.DataFrame(msg)
-    df.columns = ['Date', 'Time', 'Message']
+    df.columns = ['Date', 'Time', 'User', 'Message']
     df.to_csv(file, index=False)
 
 
