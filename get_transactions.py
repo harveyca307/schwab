@@ -7,7 +7,7 @@ Positional Arguments:
     <instance>      Config instance name
     <cube>          Cube name to retrieve
     <since>         Timestamp of first entry to retrieve
-    <location> Location to place output file
+    <location>      Location to place output file
 
 Options:
     -h              Show this screen
@@ -26,6 +26,8 @@ from baselogger import logger, APP_NAME
 from utilities import get_tm1_config
 
 APP_VERSION = '3.5'
+# ACG-GetTransactions from Application Consulting Group
+# © 2022 Copyright Application Consulting Group
 
 
 def main(instance: str, cube: str, since: datetime, output: str):
@@ -33,6 +35,7 @@ def main(instance: str, cube: str, since: datetime, output: str):
     _file = os.path.join(output, cube + '.csv')
     try:
         with TM1Service(**config) as tm1:
+            tm1.server.get_server_name()
             entries = tm1.server.get_transaction_log_entries(cube=cube, since=since)
         df = pd.DataFrame(entries)
         df['TimeStamp'] = pd.to_datetime(df['TimeStamp'])
@@ -51,11 +54,12 @@ def main(instance: str, cube: str, since: datetime, output: str):
 if __name__ == '__main__':
     start = time.perf_counter()
     cmd_args = docopt(__doc__, version=f"{APP_NAME}, Version: {APP_VERSION}")
-    logger.info(fr"Starting {APP_NAME}:  Searching transactions for '{cmd_args['<cube>']}', storing file '{cmd_args['<location>']}\{cmd_args['<cube>']}.csv', "
+    logger.info(fr"Starting {APP_NAME}:  Searching transactions for '{cmd_args['<cube>']}', storing file '{cmd_args['<location>']}\{cmd_args['<cube>']}.csv', " 
                 fr"since '{cmd_args['<since>']}'")
     _instance = cmd_args.get('<instance>')
     _cube = cmd_args.get('<cube>')
     _since_time = cmd_args.get('<since>')
+    # Parse date field and convert to date object
     year = int(_since_time[0:4])
     month = int(_since_time[5:7])
     day = int(_since_time[8:10])

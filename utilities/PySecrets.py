@@ -13,7 +13,17 @@ class PySecrets:
         self.fernet = Fernet(self.key)
 
     def make_secret(self, secret: str) -> bytes:
+        """
+        Encrypts and encodes secret
+        :param secret: string to be encrypted
+        :return: bytes representation of secret
+        """
         return self.fernet.encrypt(secret.encode())
 
     def make_public(self, secret: bytes) -> str:
+        """
+        Decrypts and decodes bytes secret to strgin
+        :param secret: Bytes representation of secret
+        :return: string secret
+        """
         return self.fernet.decrypt(secret).decode()

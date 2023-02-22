@@ -1,3 +1,6 @@
+"""
+Base config for logger and APP_NAME
+"""
 import logging
 import os
 import sys

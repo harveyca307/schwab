@@ -1,12 +1,15 @@
 """
 Usage:
-    ACG-KillTransactionLogger <instance>
+    ACG-KillTransactionLogger <instance> --list
+    ACG-KillTransactionLogger <instance> --kill <ID>
     ACG-KillTransactionLogger ( -h | --version)
 
 Positional Arguments:
     <instance>      Config instance name
 
 Options:
+    --list          List running threads
+    --kill <ID>     ID of Thread to kill
     -h              Show this screen
     --version       Show Version Information
 """
@@ -21,6 +24,8 @@ from utilities import DB, PySecrets
 APP_NAME = 'ACG-KillTransactionLogger'
 APP_VERSION = '1.0'
 FILE = ''
+# ACG-KillTransactionLogger by Application Consulting Group
+# Copyrite Application Consulting Group 2022
 
 
 def set_current_directory() -> None:

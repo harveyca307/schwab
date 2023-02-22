@@ -8,6 +8,11 @@ FILE = os.path.join(application_path, "config.ini")
 
 
 def get_tm1_config(instance: str) -> dict:
+    """
+    Read in config.ini, attach username and password
+    :param instance: TM1 Section name from config file
+    :return: dict of values needed for Tm1PY
+    """
     _user = None
     _pass = None
     config = ConfigParser()
@@ -38,6 +43,13 @@ def get_tm1_config(instance: str) -> dict:
 
 
 def create_section(instance: str, config: ConfigParser) -> dict:
+    """
+    If section name does not exist, create from user input.
+    This function creates sections for IBM Cloud Based Instances
+    :param instance: TM1 Section name
+    :param config: Configparser object
+    :return: dict of values needed for Tm1PY
+    """
     while True:
         baseurl = input(f"Enter base url for {instance}: ")
         if not baseurl:
