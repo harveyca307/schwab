@@ -12,6 +12,7 @@ Positional Arguments:
 Options:
     -h              Show this screen
     --version       Show Version Information
+© Copyright 2022 Application Consulting Group
 """
 import os
 import time
@@ -25,9 +26,7 @@ from docopt import docopt
 from baselogger import logger, APP_NAME
 from utilities import get_tm1_config
 
-APP_VERSION = '3.5'
-# ACG-GetTransactions from Application Consulting Group
-# © 2022 Copyright Application Consulting Group
+APP_VERSION = '4.0'
 
 
 def main(instance: str, cube: str, since: datetime, output: str):
@@ -38,9 +37,12 @@ def main(instance: str, cube: str, since: datetime, output: str):
             tm1.server.get_server_name()
             entries = tm1.server.get_transaction_log_entries(cube=cube, since=since)
         df = pd.DataFrame(entries)
-        df['TimeStamp'] = pd.to_datetime(df['TimeStamp'])
-        df.sort_values(by='TimeStamp', inplace=True, ascending=True)
-        df.to_csv(_file, index=False)
+        if len(df) > 0:
+            df['TimeStamp'] = pd.to_datetime(df['TimeStamp'])
+            df.sort_values(by='TimeStamp', inplace=True, ascending=True)
+            df.to_csv(_file, index=False)
+        else:
+            logger.error(f"No transactions for '{cube}' found for {since}")
     except TM1pyException as t:
         t_msg = str(t).split('-')
         if (t_msg[2]).strip() == "Reason: 'Unauthorized'":
@@ -53,7 +55,8 @@ def main(instance: str, cube: str, since: datetime, output: str):
 
 if __name__ == '__main__':
     start = time.perf_counter()
-    cmd_args = docopt(__doc__, version=f"{APP_NAME}, Version: {APP_VERSION}")
+    cmd_args = docopt(__doc__, version=f"{APP_NAME}, Version: {APP_VERSION}"
+                                       f"\n© Copyright 2022 Application Consulting Group")
     logger.info(fr"Starting {APP_NAME}:  Searching transactions for '{cmd_args['<cube>']}', storing file '{cmd_args['<location>']}\{cmd_args['<cube>']}.csv', " 
                 fr"since '{cmd_args['<since>']}'")
     _instance = cmd_args.get('<instance>')
