@@ -1,7 +1,7 @@
 """
 Usage:
-    get_transactions <instance> <cube> <since> <location> <timeout>
-    get_transactions (-h | --version)
+    ACG-GetTransactions <instance> <cube> <since> <location> <timeout>
+    ACG-GetTransactions (-h | --version)
 
 Positional Arguments:
     <instance>      Config instance name
@@ -13,6 +13,7 @@ Positional Arguments:
 Options:
     -h              Show this screen
     --version       Show Version Information
+
 © Copyright 2022 Application Consulting Group
 """
 import os
@@ -31,11 +32,10 @@ from utilities import get_tm1_config
 APP_VERSION = '5.0'
 
 
-def main(instance: str, cube: str, since: datetime, output: str):
-    config = get_tm1_config(instance=instance)
+def main(_config: dict, cube: str, since: datetime, output: str):
     _file = os.path.join(output, cube + '.csv')
     try:
-        with TM1Service(**config) as tm1:
+        with TM1Service(**_config) as tm1:
             tm1.server.get_server_name()
             entries = tm1.server.get_transaction_log_entries(cube=cube, since=since)
         df = pd.DataFrame(entries)
@@ -55,9 +55,9 @@ def main(instance: str, cube: str, since: datetime, output: str):
         logger.error('Administrative permissions required')
 
 
-def term_thread(instance: str):
-    config = get_tm1_config(instance=instance)
-    with TM1Service(**config) as tm1:
+def term_thread(_config: dict):
+    _config['session_context'] = 'ACG-ThreadKill'
+    with TM1Service(**_config) as tm1:
         threads = tm1.monitoring.get_threads()
         for thread in threads:
             if thread['Context'] == 'ACG-GetTransactions':
@@ -83,12 +83,13 @@ if __name__ == '__main__':
     since_time = datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second)
     path = cmd_args.get("<location>")
     _timeout = int(cmd_args.get("<timeout>"))
-    p = multiprocessing.Process(target=main, name="Main", args=(_instance, _cube, since_time, path))
+    config = get_tm1_config(instance=_instance)
+    p = multiprocessing.Process(target=main, name="Main", args=(config, _cube, since_time, path))
     p.start()
     p.join(_timeout)
-    if p.is_alive():
-        logger.error(f"Hit timeout ({_timeout} seconds), terminating")
-        p.terminate()
-        term_thread(instance=_instance)
+    # if p.is_alive():
+    #     logger.error(f"Hit timeout ({_timeout} seconds), terminating")
+        # p.kill()
+        # term_thread(_config=config)
     end = time.perf_counter()
     logger.info(f"Finished process in {round(end - start, 2)} seconds")
