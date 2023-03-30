@@ -19,12 +19,12 @@ Options:
 import os
 import time
 from datetime import datetime
-import multiprocessing
 
 import pandas as pd
 from TM1py import TM1Service
 from TM1py.Exceptions import TM1pyException, TM1pyNotAdminException
 from docopt import docopt
+import threading
 
 from baselogger import logger, APP_NAME
 from utilities import get_tm1_config
@@ -32,7 +32,7 @@ from utilities import get_tm1_config
 APP_VERSION = '5.0'
 
 
-def main(_config: dict, cube: str, since: datetime, output: str):
+def main(_config: dict, cube: str, since: datetime, output: str, thread_event):
     _file = os.path.join(output, cube + '.csv')
     try:
         with TM1Service(**_config) as tm1:
@@ -43,16 +43,21 @@ def main(_config: dict, cube: str, since: datetime, output: str):
             df['TimeStamp'] = pd.to_datetime(df['TimeStamp'])
             df.sort_values(by='TimeStamp', inplace=True, ascending=True)
             df.to_csv(_file, index=False)
+            return 1
         else:
             logger.error(f"No transactions for '{cube}' found for {since}")
+            return None
     except TM1pyException as t:
         t_msg = str(t).split('-')
         if (t_msg[2]).strip() == "Reason: 'Unauthorized'":
             logger.error('Login failure, check non-interactive user credentials')
+            return None
         else:
             logger.error(t)
+            return None
     except TM1pyNotAdminException:
         logger.error('Administrative permissions required')
+        return None
 
 
 def term_thread(_config: dict):
@@ -84,12 +89,14 @@ if __name__ == '__main__':
     path = cmd_args.get("<location>")
     _timeout = int(cmd_args.get("<timeout>"))
     config = get_tm1_config(instance=_instance)
-    p = multiprocessing.Process(target=main, name="Main", args=(config, _cube, since_time, path))
-    p.start()
-    p.join(_timeout)
-    # if p.is_alive():
-    #     logger.error(f"Hit timeout ({_timeout} seconds), terminating")
-        # p.kill()
-        # term_thread(_config=config)
+    thread_event = threading.Event()
+    thread_event.clear()
+    t = threading.Thread(target=main, name="Main", args=(config, _cube, since_time, path, thread_event))
+    t.start()
+    thread_event.wait(timeout=_timeout)
+    if t.is_alive():
+        logger.error(f"Hit timeout {_timeout}, killing thread")
+        thread_event.set()
+        term_thread(config)
     end = time.perf_counter()
     logger.info(f"Finished process in {round(end - start, 2)} seconds")
