@@ -82,7 +82,7 @@ def create_section(instance: str, config: ConfigParser) -> dict:
     gateway = None
     namespace = None
     ssl = False
-    _cloud = str_to_bool(input(f"Is the '{instance}' on IBM Cloud (default=False: "))
+    _cloud = str_to_bool(input(f"Is the '{instance}' on IBM Cloud (default=False): "))
     if _cloud:
         while True:
             base_url = input(f"Enter base url for '{instance}': ")

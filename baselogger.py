@@ -10,7 +10,7 @@ if getattr(sys, 'frozen', False):
 else:
     application_path = os.path.dirname(__file__)
 
-APP_NAME = "ACG-GetTransactions"
+APP_NAME = "ACG_GetTransactions"
 LOG_FILE = os.path.join(application_path, APP_NAME + '.log')
 
 logger = logging
