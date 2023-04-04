@@ -1,7 +1,6 @@
 """
 Usage:
-    ACG-KillTransactionLogger <instance> --list
-    ACG-KillTransactionLogger <instance> --kill <ID>
+    ACG-KillTransactionLogger <instance>
     ACG-KillTransactionLogger ( -h | --version)
 
 Positional Arguments:
@@ -12,73 +11,40 @@ Options:
     --kill <ID>     ID of Thread to kill
     -h              Show this screen
     --version       Show Version Information
+© 2022 Application Consulting Group
 """
 from TM1py import TM1Service
+from TM1py.Exceptions import TM1pyException, TM1pyNotAdminException
 from docopt import docopt
-from TM1py.Exceptions import TM1pyException
-from configparser import ConfigParser
-import os
-import sys
-from utilities import DB, PySecrets
+
+from utilities import get_tm1_config
 
 APP_NAME = 'ACG-KillTransactionLogger'
-APP_VERSION = '1.0'
+APP_VERSION = '2.0'
+APP_MSG = '© 2022 Application Consulting Group'
 FILE = ''
-# ACG-KillTransactionLogger by Application Consulting Group
-# Copyrite Application Consulting Group 2022
-
-
-def set_current_directory() -> None:
-    global FILE
-    if getattr(sys, 'frozen', False):
-        application_path = os.path.dirname(sys.executable)
-    else:
-        application_path = os.path.dirname(__file__)
-    directory = os.path.dirname(application_path)
-    FILE = os.path.join(application_path, 'config.ini')
-    os.chdir(directory)
-
-
-def get_tm1_config(instance: str) -> dict:
-    _user = None
-    _pass = None
-    config = ConfigParser()
-    config.read(FILE)
-    base_url = config[instance]['base_url']
-    db = DB()
-    secret = PySecrets()
-    results = db.retrieve_secrets(secret=instance)
-    for result in results:
-        _user = result.username
-        _pass = result.password
-    username = secret.make_public(secret=_user)
-    password = secret.make_public(secret=_pass)
-    _config = {
-        'base_url': base_url,
-        'namespace': 'LDAP',
-        'user': username,
-        'password': password,
-        'ssl': True,
-        'verify': True,
-        'async_requests_mode': True
-    }
-    return _config
 
 
 def main(instance: str) -> None:
-    config = get_tm1_config(instance=instance)
     try:
+        config = get_tm1_config(instance=instance)
+        config['session_context'] = 'ACG-ThreadKill'
         with TM1Service(**config) as tm1:
             threads = tm1.monitoring.get_threads()
             for thread in threads:
                 if thread['Context'] == 'ACG-GetTransactions':
                     tm1.monitoring.cancel_thread(thread['ID'])
+    except TM1pyNotAdminException:
+        print("TM1 Admin permissions required")
     except TM1pyException as t:
-        print(t)
+        t_msg = str(t).split('-')
+        if t_msg[2].strip() == "Reason:L Unauthorized":
+            print("Login failure, check credentials")
+        else:
+            print(str(t))
 
 
 if __name__ == '__main__':
-    cmd_args = docopt(__doc__, version=f"{APP_NAME}, Version: {APP_VERSION}")
+    cmd_args = docopt(__doc__, version=f"{APP_NAME}, Version: {APP_VERSION} \n {APP_MSG}")
     _instance = cmd_args.get("<instance>")
-    set_current_directory()
     main(instance=_instance)

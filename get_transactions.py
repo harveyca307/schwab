@@ -17,6 +17,7 @@ Options:
 © Copyright 2022 Application Consulting Group
 """
 import os
+import threading
 import time
 from datetime import datetime
 
@@ -24,7 +25,6 @@ import pandas as pd
 from TM1py import TM1Service
 from TM1py.Exceptions import TM1pyException, TM1pyNotAdminException
 from docopt import docopt
-import threading
 
 from baselogger import logger, APP_NAME
 from utilities import get_tm1_config
